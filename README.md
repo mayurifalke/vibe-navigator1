@@ -118,7 +118,8 @@ The project is deployed on Render and Vercel:
 🔗 Live Frontend URL:- https://vibe-navigator1.vercel.app/
 🔗 Live Backend API  https://vibe-navigator1.onrender.com/
 
-Note: Scraping functionality requires Selenium with Chrome, which is not supported on Render free tier. Currently, scraping is tested locally and processed data is served from MongoDB Atlas.
+Note: Scraping functionality requires Selenium with Chrome, which is not supported on Render free tier. Currently, scraping is 
+tested locally and processed data is served from MongoDB Atlas.
 
 
 🗂️ **Project Structure**
