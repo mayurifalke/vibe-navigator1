@@ -44,58 +44,56 @@ const HomePage = () => {
   const [topRecommendation, setTopRecommendation] = useState(null);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      // Step 1. Call /scrape route first
-      const scrapeRes = await fetch("https://vibe-navigator1.onrender.com/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ city, category }),
-      });
+  try {
+    // Step 1. Try scraping
+    const scrapeRes = await fetch("http://127.0.0.1:5000/scrape", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ city, category }),
+    });
 
-      const scrapeData = await scrapeRes.json();
-      console.log("Scrape Data:", scrapeData);
+    const scrapeData = await scrapeRes.json();
+    console.log("Scrape Data:", scrapeData);
 
-      if (scrapeData.error) {
-        setAnswer("Error scraping data: " + scrapeData.error);
-        return;
-      }
-
-      // Optional: Show user message that scraping is done
-      setAnswer(
-        `Scraped ${scrapeData.data.length} places. Generating vibes...`
-      );
-
-      // Step 2. Now call /vibes route
-      const vibesRes = await fetch("https://vibe-navigator1.onrender.com/vibes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ city, category }),
-      });
-
-      const vibesData = await vibesRes.json();
-      console.log("Vibes Data received:", vibesData);
-
-      if (Array.isArray(vibesData.vibes) && vibesData.vibes.length > 0) {
-  setVibes(vibesData.vibes);
-  setTopRecommendation(vibesData.top_recommendation || null);
-  setAnswer("");
-} else if (vibesData.message) {
-  setAnswer(vibesData.message);
-  setVibes([]);
-  setTopRecommendation(null);
-} else {
-  setAnswer("No vibes found.");
-  setVibes([]);
-  setTopRecommendation(null);
-}
-
-    } catch (error) {
-      console.error("Error in handleSearch:", error);
-      setAnswer("An error occurred while fetching vibes.");
+    if (scrapeData.error) {
+      console.log("Scrape failed, proceeding to /vibes with static data fallback.");
+    } else {
+      setAnswer(`Scraped ${scrapeData.data.length} places. Generating vibes...`);
     }
-  };
+
+  } catch (error) {
+    console.error("Scrape fetch failed, proceeding to /vibes with static data fallback.");
+  }
+
+  // ✅ Step 2. Always call /vibes
+  try {
+    const vibesRes = await fetch("http://127.0.0.1:5000/vibes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ city, category }),
+    });
+
+    const vibesData = await vibesRes.json();
+    console.log("Vibes Data received:", vibesData);
+
+    if (Array.isArray(vibesData.vibes) && vibesData.vibes.length > 0) {
+      setVibes(vibesData.vibes);
+      setAnswer("");
+    } else if (vibesData.message) {
+      setAnswer(vibesData.message);
+      setVibes([]);
+    } else {
+      setAnswer("No vibes found.");
+      setVibes([]);
+    }
+
+  } catch (error) {
+    console.error("Error in fetching vibes:", error);
+    setAnswer("An error occurred while fetching vibes.");
+  }
+};
   const [isLoading, setIsLoading] = useState(false);
 
   const handleQuery = async () => {
