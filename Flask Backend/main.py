@@ -247,6 +247,8 @@ def scrape_reviews():
 #         print("Error in /vibes route:", str(e))
 #         return jsonify({'error': str(e)}), 500
 
+from static_reviews import static_reviews
+
 @app.route('/vibes', methods=['POST'])
 def get_vibes():
     try:
@@ -258,9 +260,14 @@ def get_vibes():
         if not city or not category:
             return jsonify({'error': 'City and category are required'}), 400
 
-        # Fetch all matching locations from MongoDB
+        # Fetch from MongoDB first
         locations = list(locations_col.find({'city': city, 'category': category}))
-        print(f"Found {len(locations)} locations for city: {city}, category: {category}")
+        print(f"Found {len(locations)} locations in MongoDB for city: {city}, category: {category}")
+
+        # ✅ Fallback to static reviews if DB has no data
+        if not locations:
+            print("Using static_reviews as fallback data.")
+            locations = [item for item in static_reviews if item['city'].lower() == city.lower() and item['category'].lower() == category.lower()]
 
         if not locations:
             return jsonify({'message': f'No reviews found for {category} in {city}.'}), 200
@@ -280,7 +287,7 @@ def get_vibes():
 
         for loc_name, reviews_list in location_dict.items():
             if not reviews_list:
-                continue  # skip if no reviews for this location
+                continue
 
             combined_reviews = " ".join(reviews_list)
             prompt = f"""
@@ -311,7 +318,7 @@ Reviews: {combined_reviews}
                 summary = vibe_data.get('summary', '')
                 tags = vibe_data.get('tags', [])
             except json.JSONDecodeError:
-                summary = response.text  # fallback if JSON parsing fails
+                summary = response.text
                 tags = []
 
             vibe_results.append({
@@ -320,62 +327,13 @@ Reviews: {combined_reviews}
                 "tags": tags
             })
 
-        if not vibe_results:
-            return jsonify({'message': f'No reviews found to generate vibes for {category} in {city}.'}), 200
+        # ✅ Top recommendation logic as before (optional)
 
-        # ✅ Generate top recommended place using Gemini
-        combined_place_summaries = "\n".join([
-            f"{vibe['locationName']}: {vibe['summary']}" for vibe in vibe_results
-        ])
-
-        recommendation_prompt = f"""
-You are a city vibe recommendation AI.
-
-Based on the following place summaries for category '{category}' in city '{city}', identify:
-
-1. The **single best recommended place** overall.
-2. A short reason why it is the top recommended.
-
-Return ONLY a raw JSON object with:
-
-{{
-  "top_place": "best place name",
-  "reason": "short reason with emojis"
-}}
-
-Place Summaries:
-{combined_place_summaries}
-"""
-
-        recommendation_response = model.generate_content(recommendation_prompt)
-        print("Top Recommendation Gemini response:", recommendation_response.text)
-
-        try:
-            cleaned_rec_text = recommendation_response.text.strip()
-            if cleaned_rec_text.startswith("```"):
-                cleaned_rec_text = cleaned_rec_text.split("```")[1].strip()
-                if cleaned_rec_text.startswith("json"):
-                    cleaned_rec_text = cleaned_rec_text[4:].strip()
-            rec_data = json.loads(cleaned_rec_text)
-            top_place = rec_data.get('top_place', '')
-            reason = rec_data.get('reason', '')
-        except json.JSONDecodeError:
-            top_place = ""
-            reason = recommendation_response.text
-
-        # ✅ Return both vibes and top recommendation
-        return jsonify({
-            "vibes": vibe_results,
-            "top_recommendation": {
-                "place": top_place,
-                "reason": reason
-            }
-        }), 200
+        return jsonify({"vibes": vibe_results}), 200
 
     except Exception as e:
         print("Error in /vibes route:", str(e))
         return jsonify({'error': str(e)}), 500
-
 
 
 
