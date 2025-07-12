@@ -48,7 +48,7 @@ const HomePage = () => {
 
     try {
       // Step 1. Call /scrape route first
-      const scrapeRes = await fetch("http://127.0.0.1:5000/scrape", {
+      const scrapeRes = await fetch("https://vibe-navigator1.onrender.com/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ city, category }),
@@ -68,7 +68,7 @@ const HomePage = () => {
       );
 
       // Step 2. Now call /vibes route
-      const vibesRes = await fetch("http://127.0.0.1:5000/vibes", {
+      const vibesRes = await fetch("https://vibe-navigator1.onrender.com/vibes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ city, category }),
@@ -101,7 +101,7 @@ const HomePage = () => {
   const handleQuery = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:5000/ask-ai", {
+      const res = await fetch("https://vibe-navigator1.onrender.com/ask-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: query }),
