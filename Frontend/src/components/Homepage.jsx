@@ -15,7 +15,7 @@ const HomePage = () => {
   //   e.preventDefault();
 
   //   try {
-  //     const res = await fetch("http://127.0.0.1:5000/vibes", {
+  //     const res = await fetch("https://vibe-navigator1.onrender.com/vibes", {
   //       method: "POST",
   //       headers: { "Content-Type": "application/json" },
   //       body: JSON.stringify({ city, category }),
@@ -46,30 +46,30 @@ const HomePage = () => {
   const handleSearch = async (e) => {
   e.preventDefault();
 
-  try {
-    // Step 1. Try scraping
-    const scrapeRes = await fetch("http://127.0.0.1:5000/scrape", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ city, category }),
-    });
+  // try {
+  //   // Step 1. Try scraping
+  //   const scrapeRes = await fetch("https://vibe-navigator1.onrender.com/scrape", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ city, category }),
+  //   });
 
-    const scrapeData = await scrapeRes.json();
-    console.log("Scrape Data:", scrapeData);
+  //   const scrapeData = await scrapeRes.json();
+  //   console.log("Scrape Data:", scrapeData);
 
-    if (scrapeData.error) {
-      console.log("Scrape failed, proceeding to /vibes with static data fallback.");
-    } else {
-      setAnswer(`Scraped ${scrapeData.data.length} places. Generating vibes...`);
-    }
+  //   if (scrapeData.error) {
+  //     console.log("Scrape failed, proceeding to /vibes with static data fallback.");
+  //   } else {
+  //     setAnswer(`Scraped ${scrapeData.data.length} places. Generating vibes...`);
+  //   }
 
-  } catch (error) {
-    console.error("Scrape fetch failed, proceeding to /vibes with static data fallback.");
-  }
+  // } catch (error) {
+  //   console.error("Scrape fetch failed, proceeding to /vibes with static data fallback.");
+  // }
 
   // ✅ Step 2. Always call /vibes
   try {
-    const vibesRes = await fetch("http://127.0.0.1:5000/vibes", {
+    const vibesRes = await fetch("https://vibe-navigator1.onrender.com/vibes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ city, category }),
