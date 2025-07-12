@@ -93,8 +93,8 @@ def scrape_reviews():
             card = cards[index]
 
             try:
-                name = card.find_element(By.CLASS_NAME, "qBF1Pd").text
-                snippet = card.find_element(By.CLASS_NAME, "W4Efsd").text
+                name = card.find_element(By.CLASS_NAME, "").text
+                snippet = card.find_element(By.CLASS_NAME, "").text
 
                 # Scroll element into view and click
                 driver.execute_script("arguments[0].scrollIntoView(true);", card)
