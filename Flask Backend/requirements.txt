@@ -1,0 +1,9 @@
+Flask
+flask-cors
+python-dotenv
+google-generativeai
+pymongo
+selenium
+
+pip install gunicorn
+pip freeze > requirements.txt
