@@ -25,7 +25,7 @@ CORS(app)  # Allow requests from frontend
 # Simple health check route
 @app.route('/')
 def home():
-    return 'Vibe Navigator AI Backend is running!'
+    return 'Backend is running!'
 
 # AI endpoint
 @app.route('/ask-ai', methods=['POST'])
