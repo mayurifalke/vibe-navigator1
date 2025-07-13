@@ -46,54 +46,42 @@ const HomePage = () => {
   const handleSearch = async (e) => {
   e.preventDefault();
 
-  // try {
-  //   // Step 1. Try scraping
-  //   const scrapeRes = await fetch("https://vibe-navigator1.onrender.com/scrape", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ city, category }),
-  //   });
-
-  //   const scrapeData = await scrapeRes.json();
-  //   console.log("Scrape Data:", scrapeData);
-
-  //   if (scrapeData.error) {
-  //     console.log("Scrape failed, proceeding to /vibes with static data fallback.");
-  //   } else {
-  //     setAnswer(`Scraped ${scrapeData.data.length} places. Generating vibes...`);
-  //   }
-
-  // } catch (error) {
-  //   console.error("Scrape fetch failed, proceeding to /vibes with static data fallback.");
-  // }
-
-  // ✅ Step 2. Always call /vibes
   try {
-    const vibesRes = await fetch("https://vibe-navigator1.onrender.com/vibes", {
+    const res = await fetch("https://vibe-navigator1.onrender.com/vibes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ city, category }),
+      body: JSON.stringify({
+        city,
+        category,
+        tags: selectedTags, // ✅ Pass selected tags if your backend uses it
+      }),
     });
 
-    const vibesData = await vibesRes.json();
-    console.log("Vibes Data received:", vibesData);
+    const data = await res.json();
+    console.log("Vibes Data received:", data);
 
-    if (Array.isArray(vibesData.vibes) && vibesData.vibes.length > 0) {
-      setVibes(vibesData.vibes);
+    if (Array.isArray(data.vibes) && data.vibes.length > 0) {
+      setVibes(data.vibes);
+      setTopRecommendation(data.top_recommendation || null);
       setAnswer("");
-    } else if (vibesData.message) {
-      setAnswer(vibesData.message);
+    } else if (data.message) {
+      setAnswer(data.message);
       setVibes([]);
+      setTopRecommendation(null);
     } else {
       setAnswer("No vibes found.");
       setVibes([]);
+      setTopRecommendation(null);
     }
 
   } catch (error) {
-    console.error("Error in fetching vibes:", error);
-    setAnswer("An error occurred while fetching vibes.");
+    console.error("Error fetching vibes:", error);
+    setAnswer("Error fetching vibes. Please try again later.");
+    setVibes([]);
+    setTopRecommendation(null);
   }
 };
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleQuery = async () => {
