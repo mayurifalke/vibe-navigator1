@@ -247,53 +247,36 @@ def scrape_reviews():
 #         print("Error in /vibes route:", str(e))
 #         return jsonify({'error': str(e)}), 500
 
-from static_reviews import static_reviews
+
+from static_places import static_places
 
 @app.route('/vibes', methods=['POST'])
 def get_vibes():
     try:
         data = request.get_json()
-        city = data.get('city')
-        category = data.get('category')
+        city = data.get('city').title()
+        category = data.get('category').lower()
         print(f"Received request for city: {city}, category: {category}")
 
         if not city or not category:
             return jsonify({'error': 'City and category are required'}), 400
 
-        # Fetch from MongoDB first
-        locations = list(locations_col.find({'city': city, 'category': category}))
-        print(f"Found {len(locations)} locations in MongoDB for city: {city}, category: {category}")
-
-        # ✅ Fallback to static reviews if DB has no data
-        if not locations:
-            print("Using static_reviews as fallback data.")
-            locations = [item for item in static_reviews if item['city'].lower() == city.lower() and item['category'].lower() == category.lower()]
-
-        if not locations:
-            return jsonify({'message': f'No reviews found for {category} in {city}.'}), 200
-
-        # Group reviews by unique location name
-        location_dict = {}
-        for loc in locations:
-            loc_name = loc['locationName']
-            if loc_name not in location_dict:
-                location_dict[loc_name] = []
-            location_dict[loc_name].extend(loc.get('reviews', []))
-
-        print(f"Unique locations found: {len(location_dict)}")
-
-        vibe_results = []
         model = genai.GenerativeModel('gemini-1.5-flash')
 
-        for loc_name, reviews_list in location_dict.items():
-            if not reviews_list:
-                continue
+        # ✅ Get real place names from static_places
+        places_list = static_places.get(city, {}).get(category, [])
+        if not places_list:
+            return jsonify({'message': f'No places found for {category} in {city}.'}), 200
 
-            combined_reviews = " ".join(reviews_list)
+        vibe_results = []
+
+        for place in places_list:
             prompt = f"""
-You are a vibe summariser AI. Return ONLY a raw JSON object (no markdown, no explanation) with:
+You are a vibe summariser AI for a place recommendation system.
 
-- "summary": a short vibe summary with emojis.
+Return ONLY a raw JSON object (no markdown, no explanation) with:
+
+- "summary": a short vibe summary with emojis for the place '{place}' in {city}.
 - "tags": a list of up to 5 keywords describing the vibe (no hashtags).
 
 Example:
@@ -301,12 +284,10 @@ Example:
   "summary": "Your short summary here",
   "tags": ["tag1", "tag2", "tag3"]
 }}
-
-Reviews: {combined_reviews}
 """
 
             response = model.generate_content(prompt)
-            print("Raw Gemini response:", response.text)
+            print(f"Raw Gemini response for {place}:", response.text)
 
             try:
                 cleaned_text = response.text.strip()
@@ -318,22 +299,21 @@ Reviews: {combined_reviews}
                 summary = vibe_data.get('summary', '')
                 tags = vibe_data.get('tags', [])
             except json.JSONDecodeError:
-                summary = response.text
+                summary = response.text  # fallback
                 tags = []
 
             vibe_results.append({
-                "locationName": loc_name,
+                "locationName": place,
                 "summary": summary,
                 "tags": tags
             })
-
-        # ✅ Top recommendation logic as before (optional)
 
         return jsonify({"vibes": vibe_results}), 200
 
     except Exception as e:
         print("Error in /vibes route:", str(e))
         return jsonify({'error': str(e)}), 500
+
 
 
 
