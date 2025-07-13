@@ -149,5 +149,5 @@ vibe_navigator/
 Name | 	Role | 	Contact
 Mayuri Falke	| Full Stack Developer, AI Integrator | 	(https://www.linkedin.com/in/mayuri-falke-7890a1291/)
 
-
+Currently using static place data for summarisation due to scraping deployment limitations.
 
